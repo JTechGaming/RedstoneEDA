@@ -2,6 +2,7 @@ package com.cybrisoft.redstoneeda.client.imgui;
 
 import com.cybrisoft.redstoneeda.Redstoneeda;
 import com.cybrisoft.redstoneeda.client.RedstoneedaClient;
+import com.cybrisoft.redstoneeda.client.helpers.EditorHelper;
 import com.cybrisoft.redstoneeda.client.uiElements.MenuBar;
 import com.cybrisoft.redstoneeda.client.uiElements.windows.PreferencesWindow;
 import com.cybrisoft.redstoneeda.client.uiElements.windows.SchematicEditorWindow;
@@ -293,7 +294,8 @@ public class ImGuiImplementation {
 
         ImGui.setNextWindowDockID(mainDock);
 
-        if (ImGui.begin("Main", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoResize |
+        String mainTitle = EditorHelper.getCurrentEditorType().getTitle();
+        if (ImGui.begin(mainTitle + "###Main", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoResize |
                 ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoCollapse |
                 ImGuiWindowFlags.NoSavedSettings)) {
 

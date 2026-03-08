@@ -10,7 +10,8 @@
     "GameRendererMixin",
     "MinecraftClientMixin",
     "MouseMixin",
-    "WindowMixin"
+    "WindowMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

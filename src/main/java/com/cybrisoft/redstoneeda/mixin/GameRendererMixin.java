@@ -1,6 +1,7 @@
 package com.cybrisoft.redstoneeda.mixin;
 
 import com.cybrisoft.redstoneeda.client.rendering.FootprintGhostRenderer;
+import com.cybrisoft.redstoneeda.client.rendering.SplineRenderer;
 import net.minecraft.client.render.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GameRendererMixin {
     @Inject(method = "close", at = @At("RETURN"))
     private void onGameRendererClose(CallbackInfo ci) {
+        SplineRenderer.close();
         FootprintGhostRenderer.getInstance().close();
     }
 }

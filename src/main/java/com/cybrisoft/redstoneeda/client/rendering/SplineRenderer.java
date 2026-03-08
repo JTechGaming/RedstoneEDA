@@ -9,16 +9,13 @@ import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.MappableRingBuffer;
 import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
-import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
@@ -26,85 +23,93 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class FootprintGhostRenderer {
-    private static FootprintGhostRenderer instance;
-
-    public static final RenderPipeline FILLED_THROUGH_WALLS = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.POSITION_COLOR_SNIPPET)
-            .withLocation(Redstoneeda.identifier("pipeline/through_walls"))
+public class SplineRenderer {
+    public static final RenderPipeline LINES_THROUGH_WALLS = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.RENDERTYPE_LINES_SNIPPET)
+            .withLocation(Redstoneeda.identifier("pipeline/lines_through_walls"))
             .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
             .build()
     );
 
-    private static final BufferAllocator allocator = new BufferAllocator(RenderLayer.field_64009);
-    private BufferBuilder buffer;
+    public static class Spline {
+        Vec3d[] points;
+        Color color;
 
-    public static FootprintGhostRenderer getInstance() {
-        return instance;
-    }
-
-    private void render(WorldRenderContext context) {
-        MatrixStack matrices = context.matrices();
-        Vec3d camera = context.worldState().cameraRenderState.pos;
-
-        matrices.push();
-        matrices.translate(-camera.x, -camera.y, -camera.z);
-
-        if (buffer == null) {
-            buffer = new BufferBuilder(allocator, FILLED_THROUGH_WALLS.getVertexFormatMode(), FILLED_THROUGH_WALLS.getVertexFormat());
+        public Spline(Vec3d[] points, Color color) {
+            this.points = points;
+            this.color = color;
         }
 
-        renderFilledBox(matrices.peek().getPositionMatrix(), buffer, 0f, 100f, 0f, 1f, 101f, 1f, 0f, 1f, 0f, 0.5f);
+        public Vec3d[] getPoints() {
+            return points;
+        }
 
-        matrices.pop();
+        public void addPoint(Vec3d point) {
+            points = Arrays.copyOf(points, points.length + 1);
+            points[points.length - 1] = point;
+        }
     }
 
-    private void renderFilledBox(Matrix4fc positionMatrix, BufferBuilder buffer, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float red, float green, float blue, float alpha) {
-        // Front Face
-        buffer.vertex(positionMatrix, minX, minY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, minY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, maxY, maxZ).color(red, green, blue, alpha);
+    public static List<Spline> splines = new CopyOnWriteArrayList<>();
+    private static final BufferAllocator allocator = new BufferAllocator(RenderLayer.field_64009);
+    private static BufferBuilder buffer;
 
-        // Back face
-        buffer.vertex(positionMatrix, maxX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, maxY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, minZ).color(red, green, blue, alpha);
+    public static void init() {
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register((context) -> {
+            MatrixStack matrices = context.matrices();
+            Vec3d camera = context.worldState().cameraRenderState.pos;
 
-        // Left face
-        buffer.vertex(positionMatrix, minX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, minY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, maxY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, maxY, minZ).color(red, green, blue, alpha);
+            matrices.push();
+            matrices.translate(-camera.x, -camera.y, -camera.z);
 
-        // Right face
-        buffer.vertex(positionMatrix, maxX, minY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, maxZ).color(red, green, blue, alpha);
+            if (buffer == null) {
+                buffer = new BufferBuilder(allocator, LINES_THROUGH_WALLS.getVertexFormatMode(), LINES_THROUGH_WALLS.getVertexFormat());
+            }
 
-        // Top face
-        buffer.vertex(positionMatrix, minX, maxY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, maxY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, maxY, minZ).color(red, green, blue, alpha);
+            Matrix4fc positionMatrix = matrices.peek().getPositionMatrix();
+            for (Spline spline : splines) {
+                for (int i=0; i<spline.points.length;i++) {
+                    Vec3d point = spline.points[i];
+                    if (i > 0) {
+                        drawVertex(buffer, positionMatrix, spline.points[i-1], spline.color);
+                        drawVertex(buffer, positionMatrix, point, spline.color);
+                    }
+                }
+            }
 
-        // Bottom face
-        buffer.vertex(positionMatrix, minX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, minY, minZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, maxX, minY, maxZ).color(red, green, blue, alpha);
-        buffer.vertex(positionMatrix, minX, minY, maxZ).color(red, green, blue, alpha);
+            matrices.pop();
+
+            drawLinesThroughWalls(MinecraftClient.getInstance(), LINES_THROUGH_WALLS);
+        });
+
+        splines.add(new Spline(
+                new Vec3d[]{new Vec3d(0, 0, 0), new Vec3d(5, 5, 5), new Vec3d(2, 3, 6), new Vec3d(9, 3, 7)},
+                Color.CYAN
+        ));
+        splines.add(new Spline(
+                new Vec3d[]{new Vec3d(10, 10, 10), new Vec3d(15, 15, 15), new Vec3d(12, 13, 16), new Vec3d(19, 13, 17)},
+                Color.CYAN
+        ));
+    }
+
+    private static void drawVertex(VertexConsumer buffer, Matrix4fc matrix, Vec3d pos, Color c) {
+        buffer.vertex(matrix, (float)pos.x, (float)pos.y, (float)pos.z)
+                .color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha())
+                .normal(0f, 1f, 0f).lineWidth(10.0f);
     }
 
     private static final Vector4f COLOR_MODULATOR = new Vector4f(1f, 1f, 1f, 1f);
     private static final Vector3f MODEL_OFFSET = new Vector3f();
     private static final Matrix4f TEXTURE_MATRIX = new Matrix4f();
-    private MappableRingBuffer vertexBuffer;
+    private static MappableRingBuffer vertexBuffer;
 
-    private void drawFilledThroughWalls(MinecraftClient client, @SuppressWarnings("SameParameterValue") RenderPipeline pipeline) {
+    private static void drawLinesThroughWalls(MinecraftClient client, @SuppressWarnings("SameParameterValue") RenderPipeline pipeline) {
         // Build the buffer
         BuiltBuffer builtBuffer = buffer.end();
         BuiltBuffer.DrawParameters drawParameters = builtBuffer.getDrawParameters();
@@ -119,7 +124,7 @@ public class FootprintGhostRenderer {
         buffer = null;
     }
 
-    private GpuBuffer upload(BuiltBuffer.DrawParameters drawParameters, VertexFormat format, BuiltBuffer builtBuffer) {
+    private static GpuBuffer upload(BuiltBuffer.DrawParameters drawParameters, VertexFormat format, BuiltBuffer builtBuffer) {
         // Calculate the size needed for the vertex buffer
         int vertexBufferSize = drawParameters.vertexCount() * format.getVertexSize();
 
@@ -129,7 +134,7 @@ public class FootprintGhostRenderer {
                 vertexBuffer.close();
             }
 
-            vertexBuffer = new MappableRingBuffer(() -> Redstoneeda.MOD_ID + " through wall render pipeline", GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_MAP_WRITE, vertexBufferSize);
+            vertexBuffer = new MappableRingBuffer(() -> Redstoneeda.MOD_ID + " through wall line render pipeline", GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_MAP_WRITE, vertexBufferSize);
         }
 
         // Copy vertex data into the vertex buffer
@@ -164,7 +169,7 @@ public class FootprintGhostRenderer {
                 .write(RenderSystem.getModelViewMatrix(), COLOR_MODULATOR, MODEL_OFFSET, TEXTURE_MATRIX);
         try (RenderPass renderPass = RenderSystem.getDevice()
                 .createCommandEncoder()
-                .createRenderPass(() -> Redstoneeda.MOD_ID + " through wall render pipeline rendering", client.getFramebuffer().getColorAttachmentView(), OptionalInt.empty(), client.getFramebuffer().getDepthAttachmentView(), OptionalDouble.empty())) {
+                .createRenderPass(() -> Redstoneeda.MOD_ID + " through wall line render pipeline rendering", client.getFramebuffer().getColorAttachmentView(), OptionalInt.empty(), client.getFramebuffer().getDepthAttachmentView(), OptionalDouble.empty())) {
             renderPass.setPipeline(pipeline);
 
             RenderSystem.bindDefaultUniforms(renderPass);
@@ -185,7 +190,7 @@ public class FootprintGhostRenderer {
         builtBuffer.close();
     }
 
-    public void close() {
+    public static void close() {
         allocator.close();
 
         if (vertexBuffer != null) {

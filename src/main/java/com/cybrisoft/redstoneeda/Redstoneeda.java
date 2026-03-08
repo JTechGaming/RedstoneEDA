@@ -9,7 +9,7 @@ public class Redstoneeda implements ModInitializer {
     public static final String MOD_ID = "redstoneeda";
     public static Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final String version = "1.0.0-1.21.11+d11";
+    public static final String version = "1.0.0-1.21.11+d85";
 
     public static boolean debugMode = false;
 
