@@ -1,0 +1,235 @@
+plugins {
+    id 'fabric-loom' version '1.15-SNAPSHOT'
+    id 'com.gradleup.shadow' version "8.3.5"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+
+fabricApi {
+    configureDataGeneration {
+        client = true
+    }
+}
+
+repositories {
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
+    maven {
+        url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1"
+        content {
+            includeGroup("me.djtheredstoner")
+        }
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+dependencies {
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // ImGui
+    shadow(implementation(rootProject.files('dependencies/imgui-java-binding-1.86.11-10-g0dbf36c.jar')))
+    shadow(implementation("io.github.spair:imgui-java-lwjgl3:1.86.10") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api(rootProject.files('dependencies/imgui-java-natives-linux-1.86.11-10-g0dbf36c.jar')))
+    shadow(api(rootProject.files('dependencies/imgui-java-natives-macos-1.86.11-10-g0dbf36c.jar')))
+    shadow(api(rootProject.files('dependencies/imgui-java-natives-windows-1.86.11-10-g0dbf36c.jar')))
+
+    shadow(implementation("org.apache.commons:commons-math3:3.6.1"))
+
+    // Native File Dialogs
+    String nfdVersion = "org.lwjgl:lwjgl-nfd:3.3.3";
+
+    shadow(implementation(nfdVersion) {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-macos") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-linux") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-windows") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-macos-arm64") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-linux-arm64") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+    shadow(api("org.lwjgl:lwjgl-nfd::natives-windows-arm64") {
+        exclude group: 'org.lwjgl'
+        exclude group: 'org.lwjgl.lwjgl'
+    })
+
+    include(implementation("com.moulberry:mixinconstraints:1.0.5"))
+    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+    shadow(implementation('com.fasterxml.jackson.core:jackson-core:2.17.0'))
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", project.minecraft_version
+    inputs.property "loader_version", project.loader_version
+    filteringCharset "UTF-8"
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+                "minecraft_version": project.minecraft_version,
+                "loader_version": project.loader_version
+    }
+}
+
+def targetJavaVersion = 21
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // If Javadoc is generated, this must be specified in that task too.
+    it.options.encoding = "UTF-8"
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        it.options.release.set(targetJavaVersion)
+    }
+}
+
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archives_base_name}" }
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveBaseName = "Packified"
+    destinationDirectory = file("${buildDir}/tmp/allJar")
+
+    exclude("LICENSE")
+    exclude("LICENSE.txt")
+}
+
+remapJar {
+    dependsOn(shadowJar)
+    input = shadowJar.getArchiveFile()
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = project.archives_base_name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
+}
+
+task updateModInfo {
+    doLast {
+        // Paths to files
+        def versionFile = file('.version')
+        def devFile = file('.dev')
+
+        // Read .version file and .dev file
+        def currentVersion = versionFile.exists() ? versionFile.text.trim() : "1.0.0"
+        def isDevBuild = devFile.exists() ? devFile.text.trim().toBoolean() : false
+
+        def baseAndMcVersion
+        def baseVersion
+        def mcVersion
+        def devVersion = 0
+
+        // Parse version
+        if (currentVersion.contains("+d")) {
+            (baseAndMcVersion, devVersion) = currentVersion.split("\\+d")
+            (baseVersion, mcVersion) = baseAndMcVersion.split("-")
+            devVersion = devVersion.toInteger()
+        } else {
+            (baseVersion, mcVersion) = currentVersion.split("-")
+        }
+
+        def (major, minor, patch) = baseVersion.tokenize('.').collect { it.toInteger() }
+
+        // Increment version based on dev mode
+        if (isDevBuild) {
+            devVersion++ // Increment dev version
+        } else {
+            devVersion = 0
+        }
+
+        // Build new version
+        def newVersion = isDevBuild ? "${major}.${minor}.${patch}-${minecraft_version}+d${devVersion}" : "${major}.${minor}.${patch}-${minecraft_version}"
+        if (newVersion.contains(".null")) {
+            newVersion = newVersion.replace(".null", "")
+        }
+        // Save new version to the .version file
+        if (isDevBuild) {
+            versionFile.text = newVersion
+        } else {
+            versionFile.text = "${newVersion}+d${devVersion}"
+        }
+
+        // Paths to main class and fabric.mod.json
+        def mainClassFile = file('src/main/java/com/cybrisoft/redstoneeda/Redstoneeda.java')
+        def gradlePropertiesFile = file('gradle.properties')
+
+        // Update Java class
+        mainClassFile.text = mainClassFile.text.replaceAll(
+                /(String version = ").*?(")/,
+                "\$1$newVersion\$2"
+        )
+
+        // Update gradle.properties
+        def gradleProperties = gradlePropertiesFile.text
+        gradleProperties = gradleProperties.replaceAll(
+                /(mod_version\s*=\s*).*/,
+                "\$1$newVersion"
+        )
+        gradlePropertiesFile.text = gradleProperties
+
+        println "Version updated to $newVersion"
+    }
+}
+
+compileJava.dependsOn updateModInfo // run on compilation

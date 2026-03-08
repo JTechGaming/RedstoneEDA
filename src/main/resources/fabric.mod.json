@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "redstoneeda",
+  "version": "${version}",
+  "name": "RedstoneEDA",
+  "description": "A default project used by JTechGaming for all their mods",
+  "authors": [],
+  "contact": {},
+  "license": "GPL-3.0",
+  "icon": "assets/redstoneeda/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.cybrisoft.redstoneeda.client.RedstoneedaDataGenerator"
+    ],
+    "client": [
+      "com.cybrisoft.redstoneeda.client.RedstoneedaClient"
+    ],
+    "main": [
+      "com.cybrisoft.redstoneeda.Redstoneeda"
+    ]
+  },
+  "mixins": [
+    "redstoneeda.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
