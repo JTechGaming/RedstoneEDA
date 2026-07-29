@@ -101,7 +101,7 @@ public class SplineRenderer {
     private static void drawVertex(VertexConsumer buffer, Matrix4fc matrix, Vec3d pos, Color c) {
         buffer.vertex(matrix, (float)pos.x, (float)pos.y, (float)pos.z)
                 .color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha())
-                .normal(0f, 1f, 0f).lineWidth(10.0f);
+                .normal(0f, 1f, 0f).lineWidth(5.0f);
     }
 
     private static final Vector4f COLOR_MODULATOR = new Vector4f(1f, 1f, 1f, 1f);

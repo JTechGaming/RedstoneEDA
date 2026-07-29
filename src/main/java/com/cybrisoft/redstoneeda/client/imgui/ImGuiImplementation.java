@@ -4,6 +4,7 @@ import com.cybrisoft.redstoneeda.Redstoneeda;
 import com.cybrisoft.redstoneeda.client.RedstoneedaClient;
 import com.cybrisoft.redstoneeda.client.helpers.EditorHelper;
 import com.cybrisoft.redstoneeda.client.uiElements.MenuBar;
+import com.cybrisoft.redstoneeda.client.uiElements.windows.BreakpointWindow;
 import com.cybrisoft.redstoneeda.client.uiElements.windows.PreferencesWindow;
 import com.cybrisoft.redstoneeda.client.uiElements.windows.SchematicEditorWindow;
 import com.cybrisoft.redstoneeda.client.util.IniUtil;
@@ -337,7 +338,7 @@ public class ImGuiImplementation {
             ImGuiImplementation.setFrameX(frameX);
             ImGuiImplementation.setFrameY(frameY);
 
-            if (ImGui.isWindowHovered() && ImGui.isMouseClicked(GLFW.GLFW_MOUSE_BUTTON_RIGHT) || enterGameKeyToggled) {
+            if (ImGui.isWindowHovered() && enterGameKeyToggled) {
                 MinecraftClient client = MinecraftClient.getInstance();
                 GLFW.glfwSetInputMode(client.getWindow().getHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 ImGuiIO io = ImGui.getIO();
@@ -346,7 +347,7 @@ public class ImGuiImplementation {
                 client.mouse.lockCursor();
             }
             MinecraftClient client = MinecraftClient.getInstance();
-            if (!client.mouse.wasRightButtonClicked() && !enterGameKeyToggled) {
+            if (!enterGameKeyToggled) {
                 if (grabbed) {
                     grabbed = false;
                     client.mouse.unlockCursor();
@@ -375,7 +376,8 @@ public class ImGuiImplementation {
 
         // Window rendering
         PreferencesWindow.render();
-        SchematicEditorWindow.render();
+        //SchematicEditorWindow.render();
+        BreakpointWindow.render();
 
         ImGui.popFont();
 

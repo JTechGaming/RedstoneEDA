@@ -1,18 +1,26 @@
 package com.cybrisoft.redstoneeda.client;
 
 import com.cybrisoft.redstoneeda.Redstoneeda;
+import com.cybrisoft.redstoneeda.client.helpers.EditorHelper;
 import com.cybrisoft.redstoneeda.client.imgui.ImGuiImplementation;
+import com.cybrisoft.redstoneeda.client.rendering.OutlineRenderer;
+import com.cybrisoft.redstoneeda.client.rendering.SchematicRenderer;
 import com.cybrisoft.redstoneeda.client.rendering.SplineRenderer;
 import com.cybrisoft.redstoneeda.client.uiElements.windows.SchematicEditorWindow;
 import com.cybrisoft.redstoneeda.client.util.MathHelper;
 import com.cybrisoft.redstoneeda.client.util.SchemParser;
+import com.cybrisoft.redstoneeda.client.util.SchematicLoader;
+import com.cybrisoft.redstoneeda.client.util.Selection;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import imgui.ImGui;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gl.UniformType;
@@ -30,6 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RedstoneedaClient implements ClientModInitializer {
     public static final String MOD_ID = Redstoneeda.MOD_ID;
@@ -37,8 +47,13 @@ public class RedstoneedaClient implements ClientModInitializer {
 
     private static final String version = Redstoneeda.version;
 
+    List<Selection> activeSelections = new ArrayList<>();
+
     public static boolean shouldRender = false;
     private static KeyBinding openMenuKeybind;
+
+    public static boolean isLeftClicking = false;
+    public static boolean isRightClicking = false;
 
     public static final RenderPipeline VIEWPORT_RESIZE_PIPELINE = RenderPipelines.register(
             RenderPipeline.builder()
@@ -67,6 +82,14 @@ public class RedstoneedaClient implements ClientModInitializer {
             if (openMenuKeybind.wasPressed()) {
                 toggleVisibility();
             }
+
+            for (Selection selection : new ArrayList<>(activeSelections)) {
+                if (selection.isComplete()) {
+                    activeSelections.remove(selection);
+                } else {
+                    selection.tick();
+                }
+            }
         });
 
         // Prevent Minecraft from locking the cursor when clicking
@@ -84,13 +107,20 @@ public class RedstoneedaClient implements ClientModInitializer {
             }
         });
 
-        SplineRenderer.init();
+        OutlineRenderer.init();
+//        SchematicRenderer.init();
+//        SplineRenderer.init();
 
-        try {
-            SchemParser.SchematicFormat schem = SchemParser.parse(new File("C:\\Users\\jaspe\\Downloads\\16bit_BIN_to_BCD.schem"));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+//        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+//            try {
+//                SchemParser.SchematicFormat format = SchemParser.parse(new File("C:\\Users\\jaspe\\Downloads\\16bit_BIN_to_BCD.schem"));
+//                BlockPos origin = new BlockPos(0, 100, 0);
+//                SchematicRenderer.Schematic schematic = SchematicLoader.load(format, origin);
+//                SchematicRenderer.getInstance().setSchematic(schematic);
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
     }
 
     private void handleKeypresses() {
@@ -98,18 +128,38 @@ public class RedstoneedaClient implements ClientModInitializer {
         boolean ctrlPressed = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL) || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
         boolean shiftPressed = InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
 
-        if (shiftPressed) {
-            if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_A)) {
-                SchematicEditorWindow.openPopup();
+        if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_R)) {
+            ImGuiImplementation.enterGameKeyToggled = !ImGuiImplementation.enterGameKeyToggled;
+        }
+
+        if (!ImGuiImplementation.enterGameKeyToggled) {
+            if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_I)) {
+                activeSelections.add(new Selection((pos1, pos2) -> {
+
+                }));
             }
         }
 
-        if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_SPACE)) {
-            SchematicEditorWindow.openPopup();
-        }
-        if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_ESCAPE)) {
-            SchematicEditorWindow.addComponentPopupOpen = false;
-        }
+//        if (EditorHelper.getCurrentEditorType() == EditorHelper.EditorType.SCHEMATIC) {
+//            if (shiftPressed) {
+//                if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_A)) {
+//                    SchematicEditorWindow.openPopup();
+//                }
+//            }
+//
+//            if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_SPACE)) {
+//                SchematicEditorWindow.openPopup();
+//            }
+//            if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_ESCAPE)) {
+//                SchematicEditorWindow.addComponentPopupOpen = false;
+//            }
+//        }
+//        if (InputUtil.isKeyPressed(window, InputUtil.GLFW_KEY_LEFT_ALT)) {
+//            BlockPos pos = MathHelper.performRaycast(MinecraftClient.getInstance(), 50.0f);
+//            if (pos != null) {
+//                SplineRenderer.splines.get(0).addPoint(new Vec3d(pos.getX(), pos.getY(), pos.getZ()));
+//            }
+//        }
     }
 
     private void toggleVisibility() {

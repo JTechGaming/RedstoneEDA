@@ -6,6 +6,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
+import net.minecraft.client.input.MouseInput;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,11 +33,10 @@ public class MouseMixin {
         }
     }
 
-    @Inject(method = {"onMouseButton", "onMouseScroll", "onCursorPos"}, at = @At("HEAD"), cancellable = true)
-    public void onUseMouse(CallbackInfo ci) {
-//        if (Flashback.isExporting()) {
-//            ci.cancel();
-//        }
+    @Inject(method = "onMouseButton", at = @At("HEAD"))
+    private void onMouseButton(long window, MouseInput input, int action, CallbackInfo ci) {
+        RedstoneedaClient.isLeftClicking = input.button() == 0 && action == 1;
+        RedstoneedaClient.isRightClicking = input.button() == 1 && action == 1;
     }
 
     @Inject(method = "lockCursor", at=@At("HEAD"), cancellable = true)
