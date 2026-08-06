@@ -1,5 +1,4 @@
 package com.cybrisoft.redstoneeda.managers;
 
-public class ServerDebugSessionManager {
-
+public class ServerWireManager {
 }

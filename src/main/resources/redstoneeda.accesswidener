@@ -1,0 +1,8 @@
+accessWidener v2 named
+
+accessible class net/minecraft/world/block/ChainRestrictedNeighborUpdater$Entry
+accessible field net/minecraft/world/tick/WorldTickScheduler nextTriggerTickByChunkPos Lit/unimi/dsi/fastutil/longs/Long2LongMap;
+accessible field net/minecraft/world/tick/WorldTickScheduler chunkTickSchedulers Lit/unimi/dsi/fastutil/longs/Long2ObjectMap;
+accessible field net/minecraft/world/tick/WorldTickScheduler tickingFutureReadyPredicate Ljava/util/function/LongPredicate;
+accessible field net/minecraft/world/tick/WorldTickScheduler tickableChunkTickSchedulers Ljava/util/Queue;
+accessible field net/minecraft/world/World neighborUpdater Lnet/minecraft/world/block/ChainRestrictedNeighborUpdater;

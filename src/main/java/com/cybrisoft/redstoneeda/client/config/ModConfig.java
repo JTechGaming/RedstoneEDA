@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModConfig {
-    private static final Path CONFIG_FILE = MinecraftClient.getInstance().runDirectory.toPath().resolve("config/packified/client_config.json");
-    private static final Path DOCK_FILE = MinecraftClient.getInstance().runDirectory.toPath().resolve("config/packified/dock_config.json");
+    private static final Path CONFIG_FILE = MinecraftClient.getInstance().runDirectory.toPath().resolve("config/redstoneeda/client_config.json");
+    private static final Path DOCK_FILE = MinecraftClient.getInstance().runDirectory.toPath().resolve("config/redstoneeda/dock_config.json");
     private static final Gson GSON = new GsonBuilder().create();
 
     public static void updateSettings(Map<String, Object> changedSettings) {

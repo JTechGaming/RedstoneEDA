@@ -127,6 +127,10 @@ java {
     withSourcesJar()
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/redstoneeda.accesswidener")
+}
+
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archives_base_name}" }

@@ -8,7 +8,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
 public class MathHelper {
-    public static BlockPos performRaycast(MinecraftClient client, double range) {
+    public static BlockPos performRaycast(MinecraftClient client, double range, boolean includeAir) {
         // Get the player's position and rotation
         Vec3d cameraPos = client.player.getCameraPosVec(1.0F); // Get the player's camera position
         Vec3d lookVec = client.player.getRotationVec(1.0F); // Get the player's look direction
@@ -26,6 +26,8 @@ public class MathHelper {
 
         // Check if a block was hit
         if (blockHitResult.getType() == HitResult.Type.BLOCK) {
+            return blockHitResult.getBlockPos();
+        } else if (includeAir) {
             return blockHitResult.getBlockPos();
         }
 

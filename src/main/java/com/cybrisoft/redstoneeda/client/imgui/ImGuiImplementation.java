@@ -2,11 +2,10 @@ package com.cybrisoft.redstoneeda.client.imgui;
 
 import com.cybrisoft.redstoneeda.Redstoneeda;
 import com.cybrisoft.redstoneeda.client.RedstoneedaClient;
+import com.cybrisoft.redstoneeda.client.helpers.DockingHelper;
 import com.cybrisoft.redstoneeda.client.helpers.EditorHelper;
 import com.cybrisoft.redstoneeda.client.uiElements.MenuBar;
-import com.cybrisoft.redstoneeda.client.uiElements.windows.BreakpointWindow;
-import com.cybrisoft.redstoneeda.client.uiElements.windows.PreferencesWindow;
-import com.cybrisoft.redstoneeda.client.uiElements.windows.SchematicEditorWindow;
+import com.cybrisoft.redstoneeda.client.uiElements.windows.*;
 import com.cybrisoft.redstoneeda.client.util.IniUtil;
 import com.cybrisoft.redstoneeda.client.util.SafeTextureLoader;
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -36,7 +35,6 @@ import net.minecraft.client.input.SystemKeycodes;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.render.*;
 import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourcePackProfile;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix4f;
@@ -116,10 +114,9 @@ public class ImGuiImplementation {
         ImNodes.createContext();
         ImPlot.createContext();
 
-        IniUtil.setupIni();
+        IniUtil.loadIni("default");
 
         final ImGuiIO data = ImGui.getIO();
-        data.setIniFilename(Redstoneeda.MOD_ID + ".ini");
         data.setFontGlobalScale(1F);
 
         ImguiThemes.setDeepDarkTheme();
@@ -240,6 +237,10 @@ public class ImGuiImplementation {
         if (!isActiveInternal()) {
             openOrClose(false);
             return;
+        }
+
+        if (IniUtil.getScheduledIni() != null) {
+            IniUtil.loadIni(IniUtil.getScheduledIni());
         }
 
         // start frame
@@ -375,9 +376,7 @@ public class ImGuiImplementation {
         }
 
         // Window rendering
-        PreferencesWindow.render();
-        //SchematicEditorWindow.render();
-        BreakpointWindow.render();
+        DockingHelper.render();
 
         ImGui.popFont();
 

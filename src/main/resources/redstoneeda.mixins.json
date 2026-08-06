@@ -4,6 +4,12 @@
   "package": "com.cybrisoft.redstoneeda.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ChainRestrictedNeighborUpdaterMixin",
+    "EntityMixin",
+    "ServerWorldMixin",
+    "TickManagerMixin",
+    "WorldMixin",
+    "WorldTickSchedulerMixin"
   ],
   "client": [
     "FramebufferMixin",

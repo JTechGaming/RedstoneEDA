@@ -2,6 +2,7 @@ package com.cybrisoft.redstoneeda.mixin;
 
 import com.cybrisoft.redstoneeda.client.RedstoneedaClient;
 import com.cybrisoft.redstoneeda.client.imgui.ImGuiImplementation;
+import com.cybrisoft.redstoneeda.client.rendering.ContextMenuRenderer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;

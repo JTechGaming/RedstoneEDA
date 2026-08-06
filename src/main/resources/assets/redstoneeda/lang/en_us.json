@@ -1,4 +1,5 @@
 {
-  "key.redstoneeda.menu": "Open Menu",
+  "key.redstoneeda.editor": "Open Debugger",
+  "key.redstoneeda.context_menu": "Open Context Menu",
   "category.redstoneeda.editor": "Redstone EDA"
 }

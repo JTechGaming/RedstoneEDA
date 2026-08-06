@@ -1,25 +1,37 @@
 package com.cybrisoft.redstoneeda.client.breakpoints;
 
+import com.cybrisoft.redstoneeda.breakpoints.BreakpointCondition;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
 
+import java.util.UUID;
+
 public class ClientBreakpoint {
-    private int id = 0;
+    private UUID uuid;
     private ImString name = new ImString();
     private ImBoolean shouldPauseGame = new ImBoolean(true);
     private ImBoolean disableOnTrigger = new ImBoolean(true);
-    private ClientCondition condition;
+    private BreakpointCondition condition;
+    private ImBoolean isActive = new ImBoolean(true);
 
-    public ClientBreakpoint(int id) {
-        this.id = id;
+    public ClientBreakpoint(UUID uuid) {
+        this.uuid = uuid;
     }
 
-    public int getId() {
-        return id;
+    public ClientBreakpoint(UUID uuid, String name, boolean shouldPauseGame, boolean disableOnTrigger, BreakpointCondition condition) {
+        this.uuid = uuid;
+        this.name.set(name);
+        this.shouldPauseGame.set(shouldPauseGame);
+        this.disableOnTrigger.set(disableOnTrigger);
+        this.condition = condition;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public ImString getName() {
@@ -46,16 +58,24 @@ public class ClientBreakpoint {
         this.disableOnTrigger = disableOnTrigger;
     }
 
-    public ClientCondition getCondition() {
+    public BreakpointCondition getCondition() {
         return condition;
     }
 
-    public void setCondition(ClientCondition condition) {
+    public void setCondition(BreakpointCondition condition) {
         this.condition = condition;
     }
 
-    public boolean getActive() {
-        return true;
+    public boolean isActive() {
+        return isActive.get();
+    }
+
+    public ImBoolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive.set(active);
     }
 }
 

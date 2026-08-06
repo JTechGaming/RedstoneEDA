@@ -14,6 +14,14 @@ public class Selection {
     private BlockPos pos2;
     private CompletionAction completionAction;
 
+    public Selection(BlockPos pos1, BlockPos pos2, CompletionAction completionAction) {
+        this.pos1 = pos1;
+        this.pos2 = pos2;
+        this.pos1Set = true;
+        this.pos2Set = true;
+        this.completionAction = completionAction;
+    }
+
     public Selection(CompletionAction completionAction) {
         this.completionAction = completionAction;
     }
@@ -21,7 +29,7 @@ public class Selection {
     public void tick() {
         if (pos1Set && !pos2Set) {
             // render outline from pos1 to current mouse position
-            BlockPos currentPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 100);
+            BlockPos currentPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 10, true);
             if (currentPos != null) {
                 OutlineRenderer.outlines.put(pos1, currentPos);
             }
@@ -33,14 +41,14 @@ public class Selection {
             if (pos1Set) {
                 OutlineRenderer.outlines.remove(pos1);
             }
-            BlockPos raycastPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 150);
+            BlockPos raycastPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 10, true);
             if (raycastPos != null) {
                 pos1 = raycastPos;
                 pos1Set = true;
             }
         }
         if (RedstoneedaClient.isLeftClicking) {
-            BlockPos raycastPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 150);
+            BlockPos raycastPos = MathHelper.performRaycast(MinecraftClient.getInstance(), 10, true);
             if (raycastPos != null) {
                 pos2 = raycastPos;
                 pos2Set = true;

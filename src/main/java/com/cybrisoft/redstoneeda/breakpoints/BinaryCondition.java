@@ -1,17 +1,33 @@
-package com.cybrisoft.redstoneeda.client.breakpoints;
+package com.cybrisoft.redstoneeda.breakpoints;
 
 import com.cybrisoft.redstoneeda.client.util.Endianness;
 import net.minecraft.block.*;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClientBinaryCondition implements ClientCondition {
+public class BinaryCondition implements BreakpointCondition {
+    public UUID uuid = null;
     private BlockPos pos1 = new BlockPos(0, 0, 0);
     private BlockPos pos2 = new BlockPos(0, 0, 0);
     private Endianness endianness = Endianness.BIG;
     private int desiredValue = 0;
+
+    public BinaryCondition(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public BinaryCondition(UUID uuid, BlockPos pos1, BlockPos pos2, Endianness endianness, int desiredValue) {
+        this.uuid = uuid;
+        this.pos1 = pos1;
+        this.pos2 = pos2;
+        this.endianness = endianness;
+        this.desiredValue = desiredValue;
+    }
 
     private boolean isPowerBlock(BlockState bs) {
         return  bs.getBlock().equals(Blocks.REDSTONE_WIRE) || bs.getBlock().equals(Blocks.REDSTONE_BLOCK) ||
@@ -39,7 +55,7 @@ public class ClientBinaryCondition implements ClientCondition {
     }
 
     @Override
-    public boolean evaluate(World world) {
+    public BreakpointResult evaluate(World world) {
         AtomicInteger bit = new AtomicInteger(1);
         AtomicInteger value = new AtomicInteger();
 
@@ -52,7 +68,7 @@ public class ClientBinaryCondition implements ClientCondition {
             bit.updateAndGet(v -> v * 2);
         });
 
-        return value.get() == desiredValue;
+        return value.get() == desiredValue ? new BreakpointResult(ConditionTypes.BINARY, uuid, new BreakpointSelection(pos1, pos2), null, 0) : null;
     }
 
     @Override
@@ -83,4 +99,20 @@ public class ClientBinaryCondition implements ClientCondition {
     public int getDesiredValue() {
         return desiredValue;
     }
+
+    public static final PacketCodec<PacketByteBuf, BinaryCondition> PACKET_CODEC = new PacketCodec<PacketByteBuf, BinaryCondition>() {
+        @Override
+        public void encode(PacketByteBuf buf, BinaryCondition value) {
+            buf.writeUuid(value.uuid);
+            BlockPos.PACKET_CODEC.encode(buf, value.getPos1());
+            BlockPos.PACKET_CODEC.encode(buf, value.getPos2());
+            buf.writeInt(value.getEndianness().ordinal());
+            buf.writeInt(value.getDesiredValue());
+        }
+
+        @Override
+        public BinaryCondition decode(PacketByteBuf buf) {
+            return new BinaryCondition(buf.readUuid(), BlockPos.PACKET_CODEC.decode(buf), BlockPos.PACKET_CODEC.decode(buf), Endianness.values()[buf.readInt()], buf.readInt());
+        }
+    };
 }

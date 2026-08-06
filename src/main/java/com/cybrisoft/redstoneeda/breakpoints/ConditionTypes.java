@@ -1,4 +1,4 @@
-package com.cybrisoft.redstoneeda.client.breakpoints;
+package com.cybrisoft.redstoneeda.breakpoints;
 
 public enum ConditionTypes {
     NONE("Select a condition"),
@@ -19,5 +19,14 @@ public enum ConditionTypes {
             result[i] = ConditionTypes.values()[i].name();
         }
         return result;
+    }
+
+    public static ConditionTypes fromName(String name) {
+        for (ConditionTypes type : ConditionTypes.values()) {
+            if (type.name.equals(name)) {
+                return type;
+            }
+        }
+        return null;
     }
 }

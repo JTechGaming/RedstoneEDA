@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class GameRendererMixin {
     @Inject(method = "close", at = @At("RETURN"))
     private void onGameRendererClose(CallbackInfo ci) {
-        SplineRenderer.close();
-        FootprintGhostRenderer.getInstance().close();
+        //SplineRenderer.close();
+        //FootprintGhostRenderer.getInstance().close();
     }
 }
