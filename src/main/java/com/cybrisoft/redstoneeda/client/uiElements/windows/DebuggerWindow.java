@@ -1,5 +1,10 @@
 package com.cybrisoft.redstoneeda.client.uiElements.windows;
 
+import com.cybrisoft.redstoneeda.Project;
+import com.cybrisoft.redstoneeda.Redstoneeda;
+import com.cybrisoft.redstoneeda.client.RedstoneedaClient;
+import com.cybrisoft.redstoneeda.client.imgui.ImGuiImplementation;
+import com.cybrisoft.redstoneeda.networking.C2S.C2SInfoPacket;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -9,6 +14,7 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
 @Environment(EnvType.CLIENT)
 public class DebuggerWindow {
@@ -27,19 +33,29 @@ public class DebuggerWindow {
                 ImGui.endMenuBar();
             }
 
-            if (ImGui.beginChild("debuggerplayback")) {
-                drawGrid();
-            }
-            ImGui.endChild();
-            if (ImGui.isItemHovered()) {
-                float wheel = ImGui.getIO().getMouseWheel();
+            Project project = RedstoneedaClient.getClientProject();
 
-                if (ImGui.getIO().getKeyCtrl()) {
-                    zoom = (float) Math.clamp(zoom + wheel * 0.5f, 0.3, 5);
-                } else {
-                    scrollX = Math.max(scrollX + wheel * 10 / zoom, 0);
+            if (project != null) {
+                if (ImGui.button("Session")) {
+                    ClientPlayNetworking.send(new C2SInfoPacket(C2SInfoPacket.Ops.TOGGLE_DEBUG.id(), project.getUuid().toString()));
                 }
-                draggingPlayhead = true;
+
+                if (ImGui.beginChild("debuggerplayback")) {
+                    drawGrid();
+                }
+                ImGui.endChild();
+                if (ImGui.isItemHovered()) {
+                    float wheel = ImGui.getIO().getMouseWheel();
+
+                    if (ImGui.getIO().getKeyCtrl()) {
+                        zoom = (float) Math.clamp(zoom + wheel * 0.5f, 0.3, 5);
+                    } else {
+                        scrollX = Math.max(scrollX + wheel * 10 / zoom, 0);
+                    }
+                    draggingPlayhead = true;
+                }
+            } else {
+                ImGuiImplementation.centeredText("No project loaded");
             }
         }
         ImGui.end();

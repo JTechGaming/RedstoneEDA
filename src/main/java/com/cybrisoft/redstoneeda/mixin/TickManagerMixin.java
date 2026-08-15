@@ -2,6 +2,7 @@ package com.cybrisoft.redstoneeda.mixin;
 
 import com.cybrisoft.redstoneeda.Project;
 import com.cybrisoft.redstoneeda.managers.ServerDebugManager;
+import com.cybrisoft.redstoneeda.util.MathUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -24,14 +25,9 @@ public class TickManagerMixin {
         for (Project project : ServerDebugManager.getCurrentSessions().values()) {
             if (!project.isFrozen()) continue;
             if (project.getMin() == null) continue;
-            if (intersects(entity.getBlockPos(), project.getMin(), project.getMax())) {
+            if (MathUtils.intersects(entity.getBlockPos(), project.getMin(), project.getMax())) {
                 cir.setReturnValue(true); //todo check if frozen
             }
         }
-    }
-
-    @Unique
-    boolean intersects(BlockPos pos, BlockPos p1, BlockPos p2) {
-        return pos.getX() >= Math.min(p1.getX(), p2.getX()) && pos.getX() <= Math.max(p1.getX(), p2.getX());
     }
 }

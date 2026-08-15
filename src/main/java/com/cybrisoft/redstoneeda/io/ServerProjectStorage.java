@@ -68,7 +68,7 @@ public class ServerProjectStorage {
             .create();
 
     public static void saveProject(Project project) {
-        Path projectPath = FabricLoader.getInstance().getGameDir().resolve("eda-projects/" + project.getUuid().toString() + ".reproj");
+        Path projectPath = FabricLoader.getInstance().getGameDir().resolve("redstoneeda/eda-projects/" + project.getUuid().toString() + ".reproj");
 
         if (!Files.exists(projectPath)) {
             try {
@@ -87,7 +87,7 @@ public class ServerProjectStorage {
     }
 
     public static Project readProject(UUID projectUUID) {
-        Path projectPath = FabricLoader.getInstance().getGameDir().resolve("eda-projects/" + projectUUID + ".reproj");
+        Path projectPath = FabricLoader.getInstance().getGameDir().resolve("redstoneeda/eda-projects/" + projectUUID + ".reproj");
 
         if (!Files.exists(projectPath)) {
             try {
@@ -106,7 +106,7 @@ public class ServerProjectStorage {
     }
 
     public static List<Project> queryProjects() {
-        Path projectsFolder = FabricLoader.getInstance().getGameDir().resolve("eda-projects/");
+        Path projectsFolder = FabricLoader.getInstance().getGameDir().resolve("redstoneeda/eda-projects/");
 
         projectsFolder.toFile().mkdirs();
 

@@ -11,14 +11,11 @@ import com.cybrisoft.redstoneeda.networking.C2S.C2SOpenProjectPacket;
 import com.cybrisoft.redstoneeda.networking.S2C.S2CQueryProjectsPacket;
 import com.cybrisoft.redstoneeda.networking.S2C.S2CSyncProjectPacket;
 import com.cybrisoft.redstoneeda.networking.S2C.S2CTriggeredBreakpointPacket;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -33,7 +30,7 @@ public class Redstoneeda implements ModInitializer {
     public static final String MOD_ID = "redstoneeda";
     public static Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final String version = "1.0.0-1.21.11+d350";
+    public static final String version = "1.0.0-1.21.11+d356";
 
     public static boolean debugMode = false;
 
@@ -150,6 +147,16 @@ public class Redstoneeda implements ModInitializer {
                     if (project == null) return;
 
                     project.setFrozen(!project.isFrozen()); // todo figure out if i want to sync this to client
+                } else if (payload.op().equals(C2SInfoPacket.Ops.TOGGLE_DEBUG.id())) {
+                    if (!payload.data().isBlank()) {
+                        UUID uuid = UUID.fromString(payload.data());
+                        if (!SessionTracker.getSessions().contains(uuid)) return;
+                        if (SessionTracker.sessionActive(uuid)) {
+                            SessionTracker.pauseSession(uuid);
+                        } else {
+                            SessionTracker.startSession(uuid);
+                        }
+                    }
                 }
             });
         });
@@ -163,9 +170,7 @@ public class Redstoneeda implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register((server) -> {
             ServerDebugManager.tick(server);
 
-            for (UUID session : SessionTracker.getSessions()) {
-                SessionTracker.tickSession(session);
-            }
+            SessionTracker.tickSessions();
         });
     }
 }

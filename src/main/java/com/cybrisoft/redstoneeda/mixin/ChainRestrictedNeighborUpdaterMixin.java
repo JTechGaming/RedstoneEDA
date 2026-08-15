@@ -3,6 +3,7 @@ package com.cybrisoft.redstoneeda.mixin;
 import com.cybrisoft.redstoneeda.Project;
 import com.cybrisoft.redstoneeda.managers.ServerDebugManager;
 import com.cybrisoft.redstoneeda.util.FrozenNeighborUpdater;
+import com.cybrisoft.redstoneeda.util.MathUtils;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.block.ChainRestrictedNeighborUpdater;
@@ -39,22 +40,12 @@ public abstract class ChainRestrictedNeighborUpdaterMixin implements FrozenNeigh
         for (Project project : ServerDebugManager.getCurrentSessions().values()) {
             if (!project.isFrozen()) continue;
             if (project.getMin() == null) continue;
-            if (intersects(pos, project.getMin(), project.getMax())) {
+            if (MathUtils.intersects(pos, project.getMin(), project.getMax())) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    @Unique
-    boolean intersects(BlockPos pos, BlockPos p1, BlockPos p2) {
-        return pos.getX() >= Math.min(p1.getX(), p2.getX()) &&
-                pos.getX() <= Math.max(p1.getX(), p2.getX()) &&
-                pos.getY() >= Math.min(p1.getY(), p2.getY()) &&
-                pos.getY() <= Math.max(p1.getY(), p2.getY()) &&
-                pos.getZ() >= Math.min(p1.getZ(), p2.getZ()) &&
-                pos.getZ() <= Math.max(p1.getZ(), p2.getZ());
     }
 
     @Override

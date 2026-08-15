@@ -2,6 +2,7 @@ package com.cybrisoft.redstoneeda.mixin;
 
 import com.cybrisoft.redstoneeda.Project;
 import com.cybrisoft.redstoneeda.managers.ServerDebugManager;
+import com.cybrisoft.redstoneeda.util.MathUtils;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -22,15 +23,10 @@ public class WorldMixin {
             if (!project.isFrozen()) continue;
             if (project.getMin() == null) continue;
 
-            if (intersects(pos, project.getMin(), project.getMax())) {
+            if (MathUtils.intersects(pos, project.getMin(), project.getMax())) {
                 cir.setReturnValue(false);
                 return;
             }
         }
-    }
-
-    @Unique
-    boolean intersects(BlockPos pos, BlockPos p1, BlockPos p2) {
-        return pos.getX() >= Math.min(p1.getX(), p2.getX()) && pos.getX() <= Math.max(p1.getX(), p2.getX());
     }
 }

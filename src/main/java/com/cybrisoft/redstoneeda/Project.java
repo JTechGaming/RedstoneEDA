@@ -1,7 +1,6 @@
 package com.cybrisoft.redstoneeda;
 
 import com.cybrisoft.redstoneeda.breakpoints.Breakpoint;
-import com.cybrisoft.redstoneeda.breakpoints.BreakpointCondition;
 import com.cybrisoft.redstoneeda.io.ServerProjectStorage;
 import com.cybrisoft.redstoneeda.managers.ServerDebugManager;
 import net.minecraft.network.PacketByteBuf;
@@ -115,6 +114,15 @@ public class Project {
         }
 
         ServerProjectStorage.saveProject(this);
+    }
+
+    public boolean isIn(BlockPos pos) {
+        return  pos.getX() >= Math.min(min.getX(), max.getX()) &&
+                pos.getX() <= Math.max(min.getX(), max.getX()) &&
+                pos.getY() >= Math.min(min.getY(), max.getY()) &&
+                pos.getY() <= Math.max(min.getY(), max.getY()) &&
+                pos.getZ() >= Math.min(min.getZ(), max.getZ()) &&
+                pos.getZ() <= Math.max(min.getZ(), max.getZ());
     }
 
     public static final PacketCodec<PacketByteBuf, Project> PACKET_CODEC = new PacketCodec<PacketByteBuf, Project>() {

@@ -23,7 +23,8 @@ public record C2SInfoPacket(String op, String data) implements CustomPayload {
         QUERY("query_server_projects"),
         REQUEST("query_request_project"),
         CLEAR("clear_project"),
-        TOGGLE_FREEZE("toggle_project_freeze")
+        TOGGLE_FREEZE("toggle_project_freeze"),
+        TOGGLE_DEBUG("toggle_project_debug")
         ;
 
         String identifier;

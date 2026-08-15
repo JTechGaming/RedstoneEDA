@@ -6,6 +6,7 @@
   "mixins": [
     "ChainRestrictedNeighborUpdaterMixin",
     "EntityMixin",
+    "LivingEntityMixin",
     "ServerWorldMixin",
     "TickManagerMixin",
     "WorldMixin",

@@ -2,6 +2,7 @@ package com.cybrisoft.redstoneeda.mixin;
 
 import com.cybrisoft.redstoneeda.Project;
 import com.cybrisoft.redstoneeda.managers.ServerDebugManager;
+import com.cybrisoft.redstoneeda.util.MathUtils;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -67,19 +68,11 @@ public class WorldTickSchedulerMixin<T> {
         for (Project project : ServerDebugManager.getCurrentSessions().values()) {
             if (!project.isFrozen()) continue;
             if (project.getMin() == null) continue;
-            if (intersects(pos, project.getMin(), project.getMax())) {
+            if (MathUtils.intersects(pos, project.getMin(), project.getMax())) {
                 return true;
             }
         }
 
         return false;
-    }
-
-    @Unique
-    boolean intersects(BlockPos pos, BlockPos p1, BlockPos p2) {
-        return pos.getX() >= Math.min(p1.getX(), p2.getX()) &&
-                pos.getX() <= Math.max(p1.getX(), p2.getX()) &&
-                pos.getZ() >= Math.min(p1.getZ(), p2.getZ()) &&
-                pos.getZ() <= Math.max(p1.getZ(), p2.getZ());
     }
 }

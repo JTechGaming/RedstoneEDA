@@ -3,18 +3,13 @@ package com.cybrisoft.redstoneeda.managers;
 import com.cybrisoft.redstoneeda.Project;
 import com.cybrisoft.redstoneeda.breakpoints.Breakpoint;
 import com.cybrisoft.redstoneeda.breakpoints.BreakpointResult;
-import com.cybrisoft.redstoneeda.mixin.ServerWorldMixin;
-import com.cybrisoft.redstoneeda.networking.S2C.S2CSyncProjectPacket;
+import com.cybrisoft.redstoneeda.debugging.SessionTracker;
 import com.cybrisoft.redstoneeda.networking.S2C.S2CTriggeredBreakpointPacket;
 import com.cybrisoft.redstoneeda.util.FrozenNeighborUpdater;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,11 +43,15 @@ public class ServerDebugManager {
 
     public static UUID createProject(Project session) {
         currentSessions.put(session.getUuid(), session);
+
+        SessionTracker.setupSession(session.getUuid(), new SessionTracker.Session());
+
         return session.getUuid();
     }
 
-    public static void deleteProject(UUID uuid) {
+    public static void destroyProject(UUID uuid) {
         currentSessions.remove(uuid);
+        SessionTracker.destroySession(uuid);
     }
 
     public static Project getSession(UUID uuid) {
