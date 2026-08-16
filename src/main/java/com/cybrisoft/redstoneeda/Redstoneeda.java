@@ -30,7 +30,7 @@ public class Redstoneeda implements ModInitializer {
     public static final String MOD_ID = "redstoneeda";
     public static Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final String version = "1.0.0-1.21.11+d356";
+    public static final String version = "1.0.0-1.21.11+d373";
 
     public static boolean debugMode = false;
 
@@ -152,7 +152,7 @@ public class Redstoneeda implements ModInitializer {
                         UUID uuid = UUID.fromString(payload.data());
                         if (!SessionTracker.getSessions().contains(uuid)) return;
                         if (SessionTracker.sessionActive(uuid)) {
-                            SessionTracker.pauseSession(uuid);
+                            SessionTracker.stopSession(uuid);
                         } else {
                             SessionTracker.startSession(uuid);
                         }
@@ -166,6 +166,8 @@ public class Redstoneeda implements ModInitializer {
             for (Project project : projectList) {
                 ServerDebugManager.createProject(project);
             }
+
+            SessionTracker.initialize(server);
         });
         ServerTickEvents.END_SERVER_TICK.register((server) -> {
             ServerDebugManager.tick(server);

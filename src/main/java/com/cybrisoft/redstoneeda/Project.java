@@ -117,6 +117,8 @@ public class Project {
     }
 
     public boolean isIn(BlockPos pos) {
+        if (pos == null) return false;
+
         return  pos.getX() >= Math.min(min.getX(), max.getX()) &&
                 pos.getX() <= Math.max(min.getX(), max.getX()) &&
                 pos.getY() >= Math.min(min.getY(), max.getY()) &&

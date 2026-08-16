@@ -12,7 +12,7 @@ public class SessionTracker {
 
     private static MinecraftServer server = null;
 
-    public static void init(MinecraftServer server) {
+    public static void initialize(MinecraftServer server) {
         SessionTracker.server = server;
     }
 
@@ -25,6 +25,8 @@ public class SessionTracker {
 
         Session session = sessions.get(project);
         if (session == null) return;
+
+        SessionLogger.clear();
 
         session.setStartTick(server.getTicks());
 
@@ -41,48 +43,60 @@ public class SessionTracker {
         session.setLastTick(server.getTicks());
     }
 
+    private static boolean temp = false;
+
     public static void tickSessions() {
         if (server == null) return;
 
-        for (UUID session : sessions.keySet()) {
+        for (UUID uuid : sessions.keySet()) {
+            Project project = ServerDebugManager.getSession(uuid);
+
+            Session session = sessions.get(uuid);
+            if (session == null) return;
+            if (!session.isRunning) {
+                if (!temp) {
+                    temp = true;
+                    SessionLogger.parseTick(uuid, server.getWorld(project.getWorld()), 0);
+                }
+                return;
+            }
+
+            temp = false;
+
             // tick session
-            SessionTracker.tickSession(session);
-        }
+            SessionTracker.tickSession(uuid);
 
-        TickReport report = new TickReport();
+            TickReport report = new TickReport();
 
-        int tick = server.getTicks();
+            int tick = server.getTicks();
 
-        // tick entity trackers
-        for (ServerEntityTracker.Entry trackedEntity : ServerEntityTracker.getTrackingEntities()) {
-            if (!trackedEntity.hasChanged()) continue;
-
-            for (UUID session : sessions.keySet()) {
-                Project project = ServerDebugManager.getSession(session);
+            // tick entity trackers
+            for (ServerEntityTracker.Entry trackedEntity : ServerEntityTracker.getTrackingEntities()) {
+                if (!trackedEntity.hasChanged()) continue;
 
                 if (project.isIn(trackedEntity.getBlockPos())) {
                     report.recordEntity(trackedEntity);
                 }
+
+                trackedEntity.close();
             }
 
-            trackedEntity.close();
+            // tick block trackers
+
+            // tick block entity trackers
+
+            // Submit tickReport
+            SessionLogger.write(uuid, report); // write even if nothing changed because we need the tick count to line up with the time passed
         }
-
-        // tick block trackers
-
-        // tick block entity trackers
-
-        // submit tickReport
-        // SessionLogger.write(report);
     }
 
-    public static void pauseSession(UUID project) {
+    public static void stopSession(UUID project) {
         if (server == null) return;
 
         Session session = sessions.get(project);
         if (session == null) return;
 
-        session.setRunning(true);
+        session.setRunning(false);
         session.setLastTick(server.getTicks());
     }
 

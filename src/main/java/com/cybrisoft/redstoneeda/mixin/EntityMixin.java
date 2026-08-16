@@ -23,7 +23,8 @@ public class EntityMixin {
     @Shadow
     protected UUID uuid;
 
-    public EntityMixin() {
+    @Inject(method = "<init>", at = @At("TAIL"))
+    public void redstoneeda$initEntity(EntityType<?> type, World world, CallbackInfo ci) {
         System.out.println("Creating Entity");
         System.out.println(id);
 

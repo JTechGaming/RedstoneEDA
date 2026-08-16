@@ -239,10 +239,15 @@ public class SessionLogger {
         }
     }
 
-    static List<Byte> header;
-    static List<Byte> data;
+    static List<Byte> header = new ArrayList<>();
+    static List<Byte> data = new ArrayList<>();
 
-    public static void write(UUID project, SessionTracker.TickReport report) throws IOException {
+    public static void clear() {
+        header.clear();
+        data.clear();
+    }
+
+    public static void write(UUID project, SessionTracker.TickReport report) {
         short entries = (short) (report.getRecordedBlockEntities().size() + report.getRecordedBlocks().size() + report.getRecordedEntities().size());
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -256,6 +261,8 @@ public class SessionLogger {
 
                     String uuid = entity.getUuid().toString();
                     dos.writeChars(uuid);
+
+                    dos.write(entity.flags.toByteArray());
 
                     BitSet f = entity.flags;
                     if (hasEntityFlag(f, EntityFlags.HEALTH)) {
@@ -303,11 +310,13 @@ public class SessionLogger {
             for (byte b : bytes) {
                 data.add(b);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     private static void updateheader(int requiredSize, short entries) {
-        int size = header.size() + 12;
+        int size = header.size() + 18;
         ByteBuffer headerBuf = ByteBuffer.allocate(size);
 
         headerBuf.put(ArrayUtils.toPrimitive(header.toArray(new Byte[0])));
@@ -319,7 +328,7 @@ public class SessionLogger {
             version = headerBuf.getShort(0);
             ticks = headerBuf.getInt(2);
 
-            headerBuf.putInt(2, ticks);
+            headerBuf.putInt(2, ticks + 1);
 
             headerBuf.position(header.size());
         } else {

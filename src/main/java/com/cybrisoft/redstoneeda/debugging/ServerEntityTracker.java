@@ -5,12 +5,12 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ServerEntityTracker {
-    private static final Set<Entry> trackingEntities = new HashSet<>();
+    private static final Set<Entry> trackingEntities = new CopyOnWriteArraySet<>();
 
     public static void register(Entry entity) {
         trackingEntities.add(entity);
@@ -78,7 +78,7 @@ public class ServerEntityTracker {
 
         private SessionLogger.EntryType type;
 
-        public BitSet flags = new BitSet(8);
+        public BitSet flags = new BitSet(32);
 
         private boolean changed = false;
 
@@ -93,6 +93,7 @@ public class ServerEntityTracker {
             return id;
         }
 
+        // Data getters and setters
         public float getHealth() {
             return health;
         }
@@ -104,6 +105,7 @@ public class ServerEntityTracker {
         public void setHealth(float health) {
             this.health = health;
             flags.set(SessionLogger.EntityFlags.HEALTH.id());
+            markChanged();
         }
 
         public void setPos(double x, double y, double z) {
@@ -150,20 +152,21 @@ public class ServerEntityTracker {
             return pitch;
         }
 
-        public SessionLogger.EntryType getType() {
-            return type;
-        }
-
-        public void setType(SessionLogger.EntryType type) {
-            this.type = type;
-        }
-
         public void setPitch(float pitch) {
             if (this.pitch != pitch) {
                 markChanged();
                 flags.set(SessionLogger.EntityFlags.PITCH.id());
                 this.pitch = pitch;
             }
+        }
+
+        // Misc
+        public SessionLogger.EntryType getType() {
+            return type;
+        }
+
+        public void setType(SessionLogger.EntryType type) {
+            this.type = type;
         }
 
         public boolean hasChanged() {
